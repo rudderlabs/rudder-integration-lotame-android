@@ -1,0 +1,11 @@
+**/.DS_Store
+*.iml
+**/build/
+.gradle/
+.idea/
+local.properties
+/rudder-sdk-core
+/core
+**/.classpath
+**/.project
+**/.settings/

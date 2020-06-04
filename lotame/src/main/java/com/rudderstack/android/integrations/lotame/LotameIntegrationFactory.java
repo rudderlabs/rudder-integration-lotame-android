@@ -24,7 +24,7 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
 
     public static RudderIntegration.Factory FACTORY = new Factory() {
         @Override
-        public RudderIntegration<?> create(Object settings, RudderClient client, RudderConfig config) {
+        public RudderIntegration<LotameIntegration> create(Object settings, RudderClient client, RudderConfig config) {
             return new LotameIntegrationFactory(settings, client);
         }
 
@@ -95,7 +95,7 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
     private void identify(@NonNull RudderMessage message) {
         String userId = message.getUserId();
         if (userId!= null) {
-            lotameClient.processDspUrls(this.dspUrls, userId);
+            lotameClient.syncDspUrls(this.dspUrls, userId);
         } else {
             RudderLogger.logWarn("RudderIntegration: Lotame: identify: no userId found, " +
                     "not syncing any pixels");
@@ -106,4 +106,6 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
         String userId = message.getUserId();
         lotameClient.processBcpUrls(this.bcpUrls, this.dspUrls, userId);
     }
+
+
 }

@@ -5,6 +5,7 @@ import android.app.Application;
 import androidx.annotation.NonNull;
 
 import com.google.gson.internal.LinkedTreeMap;
+import com.rudderstack.android.sdk.core.RudderClient;
 import com.rudderstack.android.sdk.core.RudderLogger;
 
 import java.io.IOException;
@@ -13,52 +14,18 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.PatternSyntaxException;
 
-class GetRequest implements Runnable {
-    HttpURLConnection httpConnection;
-    String url;
-
-    GetRequest(String url) throws IOException{
-        this.url = url;
-        URL _url = new URL(url);
-        httpConnection = (HttpURLConnection) _url.openConnection();
-        httpConnection.setRequestMethod("GET");
-    }
-
-    @Override
-    public void run() {
-        int responseCode;
-        if(httpConnection!= null) {
-            try {
-                // make the get request
-                httpConnection.connect();
-                // get the response code
-                responseCode = httpConnection.getResponseCode();
-                if(responseCode>= 400) {
-                    RudderLogger.logError(String.format("RudderIntegration: Lotame: Error while " +
-                            "processing url : the url %s returned a %i response",
-                            url, responseCode));
-                }
-            } catch (IOException ex) {
-                RudderLogger.logError(String.format("RudderIntegration: Lotame: Error while making request to %s", url));
-                RudderLogger.logError(String.format("RudderIntegration: Lotame: %s", ex.getLocalizedMessage()));
-            }
-        } else {
-            // possibly dead code..verify
-            RudderLogger.logDebug("RudderIntegration: Lotame: couldn't connect to %s");
-        }
-    }
-}
-
-class LotameIntegration {
+public class LotameIntegration {
 
     private ArrayList<LinkedTreeMap<String, String>> mappings = null;
     private LotameStorage storage;
     private static final long syncInterval = 7 * 1000 * 3600 * 24;// 7 days in milliseconds
     private static ExecutorService es;
+    private LotameSyncCallback callback;
 
     LotameIntegration(Application application, ArrayList<LinkedTreeMap<String, String>> mappings) {
         this.storage = LotameStorage.getInstance(application);
@@ -66,7 +33,17 @@ class LotameIntegration {
         this.es = Executors.newSingleThreadExecutor();
     }
 
-    void makeGetRequest(String _url) {
+    public void registerCallback(LotameSyncCallback cb) {
+        callback = cb;
+    }
+
+    private void executeCallback() {
+        if(callback!= null) {
+            callback.onSync(this);
+        }
+    }
+
+    public void makeGetRequest(String _url) {
         try {
             // create and configure get request
             GetRequest req = new GetRequest(_url);
@@ -80,7 +57,7 @@ class LotameIntegration {
         }
     }
 
-    String compileUrl(String url, String userId) {
+    public String compileUrl(String url, String userId) {
         String replacePattern = "\\{\\{%s\\}\\}";
         String key = null, value = null;
         try {
@@ -102,7 +79,7 @@ class LotameIntegration {
         return new Date().getTime();
     }
 
-    boolean areDspUrlsToBeSynced() {
+    public boolean areDspUrlsToBeSynced() {
         long lastSyncTime = storage.getLastSyncTime();
         long currentTime = getCurrentTime();
         if(lastSyncTime == -1) {
@@ -112,48 +89,41 @@ class LotameIntegration {
         }
     }
 
-    void syncDspUrls(ArrayList<LinkedTreeMap<String, String>> dspUrls, @NonNull String userId) {
+    public void syncDspUrls(ArrayList<LinkedTreeMap<String, String>> dspUrls, @NonNull String userId) {
         processDspUrls(dspUrls, userId);
         // set last sync time
         storage.setLastSyncTime(new Date().getTime());
-        // figure out callbacks - call callback if provided
-//        trigger callback
+        // execute onSync callback
+        executeCallback();
     }
 
-    void processBcpUrls(ArrayList<LinkedTreeMap<String, String>> bcpUrls,
-                        ArrayList<LinkedTreeMap<String, String>> dspUrls,
-                        String userId) {
+    private void processUrls(String urlType, ArrayList<LinkedTreeMap<String, String>> urls, @NonNull String userId) {
         String url;
-        if(bcpUrls!= null && !bcpUrls.isEmpty()) { // call to native SDK
-            for (LinkedTreeMap<String, String> bcpUrl:bcpUrls) {
-                url = bcpUrl.get("bcpUrlTemplate");
-                if (url!= null) {
-                    url = compileUrl(url, null);
+        String urlKey = String.format("%sUrlTemplate", urlType);
+        if(urls!= null && !urls.isEmpty()) { // call to native SDK
+            for (LinkedTreeMap<String, String> _url : urls) {
+                url = _url.get(urlKey);
+                if (url != null) {
+                    url = compileUrl(url, userId);
                     makeGetRequest(url);
                 }
             }
         } else {
-            RudderLogger.logWarn("RudderIntegration: Lotame: no bcpUrls found in config");
+            RudderLogger.logWarn(String.format("RudderIntegration: Lotame: no %sUrls found in config", urlType));
         }
+    }
 
+    public void processBcpUrls(ArrayList<LinkedTreeMap<String, String>> bcpUrls,
+                        ArrayList<LinkedTreeMap<String, String>> dspUrls,
+                        String userId) {
+        processUrls("bcp", bcpUrls, null);
         // sync dsp urls if 7 days have passed since they were last synced
         if(userId!= null && areDspUrlsToBeSynced()) {
             syncDspUrls(dspUrls, userId);
         }
     }
 
-    void processDspUrls(ArrayList<LinkedTreeMap<String, String>> dspUrls, @NonNull String userId) {
-        String url;
-        if(dspUrls!= null && !dspUrls.isEmpty()) { // call to native SDK
-            for (LinkedTreeMap<String, String> dspUrl : dspUrls) {
-                url = dspUrl.get("dspUrlTemplate");
-                if (url != null) {
-                    url = compileUrl(url, userId);
-                     makeGetRequest(url);
-                }
-            }
-        } else {
-            RudderLogger.logWarn("RudderIntegration: Lotame: no dspUrls found in config");
-        }
+    public void processDspUrls(ArrayList<LinkedTreeMap<String, String>> dspUrls, @NonNull String userId) {
+        processUrls("dsp", dspUrls, userId);
     }
 }

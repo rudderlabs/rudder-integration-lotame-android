@@ -154,6 +154,5 @@ public class LotameIntegration {
         } else {
             RudderLogger.logWarn("RudderIntegration: Lotame: no dspUrls found in config");
         }
-        processUrls("dsp", dspUrls, userId);
     }
 }

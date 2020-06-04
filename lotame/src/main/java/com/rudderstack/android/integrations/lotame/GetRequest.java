@@ -6,12 +6,14 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+// TODO: add a java doc (added only here. applicable for all other classes), code formatting : cmd+option+l
 class GetRequest implements Runnable {
-    HttpURLConnection httpConnection;
-    String url;
+    HttpURLConnection httpConnection; // TODO: convert to a local var
+    String url; // TODO: can we make it private?
 
     GetRequest(String url) throws IOException {
         this.url = url;
+        // TODO: move the code below under the run method. the constructor will get called from main thread (probably). `run` will get called in the background thread. makes sense to move this part under the run method
         URL _url = new URL(url);
         httpConnection = (HttpURLConnection) _url.openConnection();
         httpConnection.setRequestMethod("GET");

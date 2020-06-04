@@ -20,10 +20,9 @@ import java.util.concurrent.Executors;
 import java.util.regex.PatternSyntaxException;
 
 public class LotameIntegration {
-
     private ArrayList<LinkedTreeMap<String, String>> mappings = null;
     private LotameStorage storage;
-    private static final long syncInterval = 7 * 1000 * 3600 * 24;// 7 days in milliseconds
+    private static final long syncInterval = 7 * 1000 * 3600 * 24; // 7 days in milliseconds
     private static ExecutorService es;
     private LotameSyncCallback callback;
 
@@ -57,6 +56,7 @@ public class LotameIntegration {
         }
     }
 
+    // TODO: Add random support. {{random}} should be replaced with a random number
     public String compileUrl(String url, String userId) {
         String replacePattern = "\\{\\{%s\\}\\}";
         String key = null, value = null;
@@ -75,6 +75,7 @@ public class LotameIntegration {
         return url;
     }
 
+    // CHECK: do we need the static method here?
     static long getCurrentTime() {
         return new Date().getTime();
     }
@@ -87,6 +88,8 @@ public class LotameIntegration {
         } else {
             return (currentTime - lastSyncTime) >= syncInterval;
         }
+
+        // CHECK: can we simplify the return
     }
 
     public void syncDspUrls(ArrayList<LinkedTreeMap<String, String>> dspUrls, @NonNull String userId) {

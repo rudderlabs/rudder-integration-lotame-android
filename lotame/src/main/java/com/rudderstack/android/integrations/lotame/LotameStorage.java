@@ -21,17 +21,19 @@ class LotameStorage {
         return storageInstance;
     }
 
+    // CHECK: do we need static here? 
     static void setLastSyncTime(long syncTime) {
         if (storage != null) {
             storage.edit().putLong(LOTAME_LAST_SYNC_TIME, syncTime).apply();
         }
     }
 
+    // CHECK: do we need static here? 
     static long getLastSyncTime() {
         if (storage != null) {
             return storage.getLong(LOTAME_LAST_SYNC_TIME, -1);
         } else {
-            return -1;// return -1 is storage is null
+            return -1;
         }
     }
 }

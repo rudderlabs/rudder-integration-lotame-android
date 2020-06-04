@@ -55,7 +55,7 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
 
     @Override
     public void reset() {
-//        bugSnagClient.clearBreadcrumbs();
+        // TODO : should we reset our storage as well?
     }
 
     @Override
@@ -106,6 +106,4 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
         String userId = message.getUserId();
         lotameClient.processBcpUrls(this.bcpUrls, this.dspUrls, userId);
     }
-
-
 }

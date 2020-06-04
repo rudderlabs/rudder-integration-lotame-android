@@ -44,18 +44,12 @@ public class LotameIntegration {
     }
 
     public void makeGetRequest(String _url) {
-            try {
+        try {
             // create and configure get request
             GetRequest req = new GetRequest(_url);
             // make the get request
-                try {
-                    es.submit(req).get();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } catch (MalformedURLException ex) {
+            es.submit(req);
+        } catch (MalformedURLException ex) {
             RudderLogger.logError(String.format("RudderIntegration: Lotame: Malformed Url: %s", _url));
         } catch (IOException ex) {
             RudderLogger.logError(String.format("RudderIntegration: Lotame: Error while making request to %s", _url));

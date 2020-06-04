@@ -97,28 +97,6 @@ public class LotameIntegration {
         executeCallback();
     }
 
-    public void processBcpUrls(ArrayList<LinkedTreeMap<String, String>> bcpUrls,
-                        ArrayList<LinkedTreeMap<String, String>> dspUrls,
-                        String userId) {
-        String url;
-        if(bcpUrls!= null && !bcpUrls.isEmpty()) { // call to native SDK
-            for (LinkedTreeMap<String, String> bcpUrl:bcpUrls) {
-                url = bcpUrl.get("bcpUrlTemplate");
-                if (url!= null) {
-                    url = compileUrl(url, null);
-                    makeGetRequest(url);
-                }
-            }
-        } else {
-            RudderLogger.logWarn("RudderIntegration: Lotame: no bcpUrls found in config");
-        }
-
-        // sync dsp urls if 7 days have passed since they were last synced
-        if(userId!= null && areDspUrlsToBeSynced()) {
-            syncDspUrls(dspUrls, userId);
-        }
-    }
-
     private void processUrls(String urlType, ArrayList<LinkedTreeMap<String, String>> urls, @NonNull String userId) {
         String url;
         String urlKey = String.format("%sUrlTemplate", urlType);
@@ -135,18 +113,17 @@ public class LotameIntegration {
         }
     }
 
-    public void processDspUrls(ArrayList<LinkedTreeMap<String, String>> dspUrls, @NonNull String userId) {
-        String url;
-        if(dspUrls!= null && !dspUrls.isEmpty()) { // call to native SDK
-            for (LinkedTreeMap<String, String> dspUrl : dspUrls) {
-                url = dspUrl.get("dspUrlTemplate");
-                if (url != null) {
-                    url = compileUrl(url, userId);
-                     makeGetRequest(url);
-                }
-            }
-        } else {
-            RudderLogger.logWarn("RudderIntegration: Lotame: no dspUrls found in config");
+    public void processBcpUrls(ArrayList<LinkedTreeMap<String, String>> bcpUrls,
+                        ArrayList<LinkedTreeMap<String, String>> dspUrls,
+                        String userId) {
+        processUrls("bcp", bcpUrls, null);
+        // sync dsp urls if 7 days have passed since they were last synced
+        if(userId!= null && areDspUrlsToBeSynced()) {
+            syncDspUrls(dspUrls, userId);
         }
+    }
+
+    public void processDspUrls(ArrayList<LinkedTreeMap<String, String>> dspUrls, @NonNull String userId) {
+        processUrls("dsp", dspUrls, userId);
     }
 }

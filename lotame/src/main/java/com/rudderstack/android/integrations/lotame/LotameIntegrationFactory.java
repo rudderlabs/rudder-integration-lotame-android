@@ -27,7 +27,11 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
 
     public static RudderIntegration.Factory FACTORY = new Factory() {
         @Override
-        public RudderIntegration<LotameIntegration> create(Object settings, RudderClient client, RudderConfig config) {
+        public RudderIntegration<LotameIntegration> create(
+                Object settings,
+                RudderClient client,
+                RudderConfig config
+        ) {
             return new LotameIntegrationFactory(settings, client);
         }
 
@@ -42,17 +46,13 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
         ArrayList<LinkedTreeMap<String, String>> mappings = null;
 
         if (configMap != null && client.getApplication() != null) {
-            if(configMap.containsKey("bcpUrlSettings")) {
-                bcpUrls = (ArrayList<LinkedTreeMap<String, String>>) configMap.get("bcpUrlSettings");
-            }
-            if(configMap.containsKey("dspUrlSettings")) {
-                dspUrls = (ArrayList<LinkedTreeMap<String, String>>) configMap.get("dspUrlSettings");
-            }
+            bcpUrls = Utils.getBcpConfig(configMap);
+            dspUrls = Utils.getDspConfig(configMap);
             if(configMap.containsKey("mappings")) {
                 mappings = (ArrayList<LinkedTreeMap<String, String>>) configMap.get("mappings");
             }
 
-            lotameClient = new LotameIntegration(client.getApplication(), mappings);// will get init only when config is present
+            lotameClient = new LotameIntegration(client.getApplication(), mappings);
         }
     }
 

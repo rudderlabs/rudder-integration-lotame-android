@@ -1,30 +1,41 @@
 package com.rudderstack.android.integrations.lotame;
 
 import android.app.Application;
+import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.gson.internal.LinkedTreeMap;
-import com.rudderstack.android.sdk.core.RudderClient;
 import com.rudderstack.android.sdk.core.RudderLogger;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.concurrent.ExecutionException;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.PatternSyntaxException;
 
 public class LotameIntegration {
-    private ArrayList<LinkedTreeMap<String, String>> mappings = null;
+    private static final long SYNC_INTERVAL = 1000 * 60 * 60 * 24 * 7; // 7 days in milliseconds
+
+    private ArrayList<LinkedTreeMap<String, String>> mappings;
     private LotameStorage storage;
-    private static final long syncInterval = 7 * 1000 * 3600 * 24; // 7 days in milliseconds
-    private static ExecutorService es;
+    private ExecutorService es;
     private LotameSyncCallback callback;
+
+    // singleton
+    public LotameIntegration getInstance(
+            @NonNull Context context,
+            @Nullable List<String> bcpUrls,
+            @Nullable List<String> dspUrls,
+            @Nullable Map<String, String> keys
+    ) {
+
+    }
 
     LotameIntegration(Application application, ArrayList<LinkedTreeMap<String, String>> mappings) {
         this.storage = LotameStorage.getInstance(application);
@@ -37,8 +48,8 @@ public class LotameIntegration {
     }
 
     private void executeCallback() {
-        if(callback!= null) {
-            callback.onSync(this);
+        if (callback != null) {
+            callback.onSync();
         }
     }
 
@@ -83,7 +94,7 @@ public class LotameIntegration {
     public boolean areDspUrlsToBeSynced() {
         long lastSyncTime = storage.getLastSyncTime();
         long currentTime = getCurrentTime();
-        if(lastSyncTime == -1) {
+        if (lastSyncTime == -1) {
             return true;
         } else {
             return (currentTime - lastSyncTime) >= syncInterval;
@@ -92,7 +103,7 @@ public class LotameIntegration {
         // CHECK: can we simplify the return
     }
 
-    public void syncDspUrls(ArrayList<LinkedTreeMap<String, String>> dspUrls, @NonNull String userId) {
+    public void syncDspUrls(@NonNull String userId, @Nullable ArrayList<LinkedTreeMap<String, String>> dspUrls) {
         processDspUrls(dspUrls, userId);
         // set last sync time
         storage.setLastSyncTime(new Date().getTime());
@@ -103,7 +114,7 @@ public class LotameIntegration {
     private void processUrls(String urlType, ArrayList<LinkedTreeMap<String, String>> urls, @NonNull String userId) {
         String url;
         String urlKey = String.format("%sUrlTemplate", urlType);
-        if(urls!= null && !urls.isEmpty()) { // call to native SDK
+        if (urls != null && !urls.isEmpty()) { // call to native SDK
             for (LinkedTreeMap<String, String> _url : urls) {
                 url = _url.get(urlKey);
                 if (url != null) {
@@ -117,11 +128,11 @@ public class LotameIntegration {
     }
 
     public void processBcpUrls(ArrayList<LinkedTreeMap<String, String>> bcpUrls,
-                        ArrayList<LinkedTreeMap<String, String>> dspUrls,
-                        String userId) {
+                               ArrayList<LinkedTreeMap<String, String>> dspUrls,
+                               String userId) {
         processUrls("bcp", bcpUrls, null);
         // sync dsp urls if 7 days have passed since they were last synced
-        if(userId!= null && areDspUrlsToBeSynced()) {
+        if (userId != null && areDspUrlsToBeSynced()) {
             syncDspUrls(dspUrls, userId);
         }
     }

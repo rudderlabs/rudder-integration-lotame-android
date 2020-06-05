@@ -9,7 +9,7 @@ Rudder is a platform for collecting, storing and routing customer event data to 
 Released under [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
 ## Getting Started with Lotame Integration of Android SDK
-1. Add [Lotame](https://www.lotame.com) as a destination in the [Dashboard](https://app.rudderlabs.com/)
+1. Add [Lotame](https://www.lotame.com) as a destination in the [Dashboard](https://app.rudderstack.com/)
 
 2. Add these lines to your `app/build.gradle`
 ```
@@ -49,11 +49,15 @@ val rudderClient: RudderClient = RudderClient.getInstance(
 ```
 
 ## Register your `onSync` callback
-DSP pixels are always synced after an `identify` call and we sync the pixels once in every 7 days. We check for the time elapsed since last sync in evry `screen` call.
+DSP pixels are always synced after an `identify` call and we sync the pixels once in every 7 days. We check for the time elapsed since last sync in every `screen` call.
 You can get notified about the DSP Pixels syncs by registering a callback. The code snippet below shows the examle:
 
 ```
-// put the code here
+rudderClient.onIntegrationReady("Lotame") {
+    (it as LotameIntegration).registerCallback {
+        // implement your logic
+    }
+}
 ```
 
 ## Send Events

@@ -24,25 +24,34 @@ class MainActivity : AppCompatActivity() {
 
         fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
+                .setAction("Action", null).show()
         }
 
-        val rudderClient = RudderClient.getInstance(this, "1YyzMKUnUZJ6XNRkdHJCayV5fzM", RudderConfig.Builder()
-            .withDataPlaneUrl("https://hosted.rudderlabs.com")
-            .withLogLevel(RudderLogger.RudderLogLevel.DEBUG)
-            .withFactory(LotameIntegrationFactory.FACTORY)
+        val rudderClient = RudderClient.getInstance(
+            this, "1YyzMKUnUZJ6XNRkdHJCayV5fzM", RudderConfig.Builder()
+                .withDataPlaneUrl("https://hosted.rudderlabs.com")
+                .withLogLevel(RudderLogger.RudderLogLevel.DEBUG)
+                .withFactory(LotameIntegrationFactory.FACTORY)
         )
-        class LC : LotameSyncCallback {
-            override fun onSync(instance: LotameIntegration) {
-                RudderLogger.logInfo("SYnxx")
-            }
 
-        }
-        class C : RudderClient.Callback{
-            override fun onReady(instance: Any?) {
-                (instance as LotameIntegration).registerCallback(LC());
+        rudderClient.onIntegrationReady("Lotame") {
+            (it as LotameIntegration).registerCallback {
+
             }
         }
+
+//        class LC : LotameSyncCallback {
+//            override fun onSync(instance: LotameIntegration) {
+//                RudderLogger.logInfo("SYnxx")
+//            }
+//
+//        }
+//
+//        class C : RudderClient.Callback {
+//            override fun onReady(instance: Any?) {
+//                (instance as LotameIntegration).registerCallback(LC());
+//            }
+//        }
 
         rudderClient.onIntegrationReady("Lotame", C())
         rudderClient.track("new event")

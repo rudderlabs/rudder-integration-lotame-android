@@ -5,11 +5,13 @@ import com.rudderstack.android.sdk.core.RudderLogger;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Locale;
 
 // TODO: add a java doc (added only here. applicable for all other classes), code formatting : cmd+option+l
+// TODO: add some more debug logs
 class GetRequest implements Runnable {
-    HttpURLConnection httpConnection; // TODO: convert to a local var
-    String url; // TODO: can we make it private?
+    HttpURLConnection httpConnection; // TODO : convert to a local var
+    String url; // TODO : can we make it private?
 
     GetRequest(String url) throws IOException {
         this.url = url;
@@ -22,15 +24,15 @@ class GetRequest implements Runnable {
     @Override
     public void run() {
         int responseCode;
-        if(httpConnection!= null) {
+        if (httpConnection != null) {
             try {
                 // make the get request
                 httpConnection.connect();
                 // get the response code
                 responseCode = httpConnection.getResponseCode();
-                RudderLogger.logInfo(String.format("==== %s : %d", url, responseCode));
-                if(responseCode>= 400) {
-                    RudderLogger.logError(String.format("RudderIntegration: Lotame: Error while " +
+                RudderLogger.logInfo(String.format(Locale.US, "==== %s : %d", url, responseCode));
+                if (responseCode >= 400) {
+                    RudderLogger.logError(String.format(Locale.US, "RudderIntegration: Lotame: Error while " +
                                     "processing url : the url %s returned a %i response",
                             url, responseCode));
                 }

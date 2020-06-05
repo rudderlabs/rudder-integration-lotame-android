@@ -15,6 +15,9 @@ import com.rudderstack.android.sdk.core.RudderMessage;
 import java.util.ArrayList;
 import java.util.Map;
 
+/**
+ * RudderStack's Integration Factory for Lotame
+ */
 public class LotameIntegrationFactory extends RudderIntegration<LotameIntegration> {
 
     private static final String LOTAME_KEY = "Lotame";
@@ -55,7 +58,7 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
 
     @Override
     public void reset() {
-        // TODO : should we reset our storage as well?
+        lotameClient.reset();
     }
 
     @Override
@@ -95,7 +98,7 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
     private void identify(@NonNull RudderMessage message) {
         String userId = message.getUserId();
         if (userId!= null) {
-            lotameClient.syncDspUrls(this.dspUrls, userId);
+            lotameClient.syncDspUrls(userId, this.dspUrls);
         } else {
             RudderLogger.logWarn("RudderIntegration: Lotame: identify: no userId found, " +
                     "not syncing any pixels");

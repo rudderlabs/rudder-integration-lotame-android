@@ -22,18 +22,24 @@ class LotameStorage {
     }
 
     // CHECK: do we need static here? 
-    static void setLastSyncTime(long syncTime) {
+    void setLastSyncTime(long syncTime) {
         if (storage != null) {
-            storage.edit().putLong(LOTAME_LAST_SYNC_TIME, syncTime).apply();
+            storage.edit().putLong(LOTAME_LAST_SYNC_TIME, syncTime).commit();
         }
     }
 
     // CHECK: do we need static here? 
-    static long getLastSyncTime() {
+    long getLastSyncTime() {
         if (storage != null) {
             return storage.getLong(LOTAME_LAST_SYNC_TIME, -1);
         } else {
             return -1;
+        }
+    }
+
+    void reset() {
+        if (storage != null) {
+            storage.edit().clear().commit();
         }
     }
 }

@@ -7,9 +7,8 @@ import android.util.Log;
  * */
 public class Logger {
     private static int logLevel = LogLevel.INFO;
-    private static final String TAG = "LotameIntegration:";
+    private static final String TAG = "LotameIntegration";
 
-    // TODO: figure out default logLevel
     static void init(int l) {
         if (l > LogLevel.VERBOSE) l = LogLevel.VERBOSE;
         else if (l < LogLevel.NONE) l = LogLevel.NONE;

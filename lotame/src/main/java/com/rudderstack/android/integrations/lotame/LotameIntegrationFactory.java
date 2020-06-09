@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 
-import com.google.gson.internal.LinkedTreeMap;
 import com.rudderstack.android.sdk.core.MessageType;
 import com.rudderstack.android.sdk.core.RudderClient;
 import com.rudderstack.android.sdk.core.RudderConfig;
@@ -21,8 +20,8 @@ import java.util.Map;
 public class LotameIntegrationFactory extends RudderIntegration<LotameIntegration> {
 
     private static final String LOTAME_KEY = "Lotame";
-    private ArrayList<LinkedTreeMap<String, String>> bcpUrls = null;
-    private ArrayList<LinkedTreeMap<String, String>> dspUrls = null;
+    private ArrayList<String> bcpUrls = null;
+    private ArrayList<String> dspUrls = null;
     private LotameIntegration lotameClient;
 
     public static RudderIntegration.Factory FACTORY = new Factory() {
@@ -32,6 +31,7 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
                 RudderClient client,
                 RudderConfig config
         ) {
+            Logger.init(config.getLogLevel());
             return new LotameIntegrationFactory(settings, client);
         }
 
@@ -43,17 +43,27 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
 
     private LotameIntegrationFactory(@Nullable Object config, @NonNull RudderClient client) {
         Map<String, Object> configMap = (Map<String, Object>) config;
-        ArrayList<LinkedTreeMap<String, String>> mappings = null;
+        Map<String, String> mappings;
 
         if (configMap != null && client.getApplication() != null) {
-            bcpUrls = Utils.getBcpConfig(configMap);
-            dspUrls = Utils.getDspConfig(configMap);
-            if(configMap.containsKey("mappings")) {
-                mappings = (ArrayList<LinkedTreeMap<String, String>>) configMap.get("mappings");
-            }
+            bcpUrls = getBcpConfig(configMap);
+            dspUrls = getDspConfig(configMap);
+            mappings = getFieldMappings(configMap);
 
-            lotameClient = new LotameIntegration(client.getApplication(), mappings);
+            lotameClient = LotameIntegration.getInstance(client.getApplication(), mappings);
         }
+    }
+
+    private ArrayList<String> getBcpConfig(Map<String, Object> configMap) {
+        return Utils.getUrlConfig("bcp", configMap);
+    }
+
+    private ArrayList<String> getDspConfig(Map<String, Object> configMap) {
+        return Utils.getUrlConfig("dsp", configMap);
+    }
+
+    private Map<String, String> getFieldMappings(Map<String, Object> configMap) {
+        return Utils.getMappingConfig(configMap);
     }
 
     @Override
@@ -97,7 +107,7 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
 
     private void identify(@NonNull RudderMessage message) {
         String userId = message.getUserId();
-        if (userId!= null) {
+        if (userId != null) {
             lotameClient.syncDspUrls(userId, this.dspUrls);
         } else {
             RudderLogger.logWarn("RudderIntegration: Lotame: identify: no userId found, " +

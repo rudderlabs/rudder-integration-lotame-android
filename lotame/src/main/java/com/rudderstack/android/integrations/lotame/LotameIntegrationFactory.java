@@ -3,7 +3,7 @@ package com.rudderstack.android.integrations.lotame;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-
+import com.rudderstack.android.integrations.lotame.sdk.LotameIntegration;
 import com.rudderstack.android.sdk.core.MessageType;
 import com.rudderstack.android.sdk.core.RudderClient;
 import com.rudderstack.android.sdk.core.RudderConfig;
@@ -31,8 +31,7 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
                 RudderClient client,
                 RudderConfig config
         ) {
-            Logger.init(config.getLogLevel());
-            return new LotameIntegrationFactory(settings, client);
+            return new LotameIntegrationFactory(settings, client, config);
         }
 
         @Override
@@ -41,29 +40,22 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
         }
     };
 
-    private LotameIntegrationFactory(@Nullable Object config, @NonNull RudderClient client) {
+    private LotameIntegrationFactory(
+            @Nullable Object config,
+            @NonNull RudderClient client,
+            @NonNull RudderConfig rudderConfig
+    ) {
         Map<String, Object> configMap = (Map<String, Object>) config;
-        Map<String, String> mappings;
 
         if (configMap != null && client.getApplication() != null) {
-            bcpUrls = getBcpConfig(configMap);
-            dspUrls = getDspConfig(configMap);
-            mappings = getFieldMappings(configMap);
-
-            lotameClient = LotameIntegration.getInstance(client.getApplication(), mappings);
+            bcpUrls = Utils.getUrlConfig("bcp", configMap);
+            dspUrls = Utils.getUrlConfig("dsp", configMap);
+            lotameClient = LotameIntegration.getInstance(
+                    client.getApplication(),
+                    Utils.getMappingConfig(configMap),
+                    rudderConfig.getLogLevel()
+            );
         }
-    }
-
-    private ArrayList<String> getBcpConfig(Map<String, Object> configMap) {
-        return Utils.getUrlConfig("bcp", configMap);
-    }
-
-    private ArrayList<String> getDspConfig(Map<String, Object> configMap) {
-        return Utils.getUrlConfig("dsp", configMap);
-    }
-
-    private Map<String, String> getFieldMappings(Map<String, Object> configMap) {
-        return Utils.getMappingConfig(configMap);
     }
 
     @Override
@@ -92,10 +84,18 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
         if (eventType != null) {
             switch (eventType) {
                 case MessageType.SCREEN:
-                    this.screen(message);
+                    lotameClient.processBcpUrls(
+                            this.bcpUrls,
+                            this.dspUrls,
+                            message.getUserId()
+                    );
                     break;
                 case MessageType.IDENTIFY:
-                    this.identify(message);
+                    if (message.getUserId() != null) {
+                        lotameClient.syncDspUrls(message.getUserId(), this.dspUrls);
+                    } else {
+                        RudderLogger.logWarn("RudderIntegration: Lotame: identify: no userId found, not syncing any pixels");
+                    }
                     break;
                 default:
                     RudderLogger.logWarn(String.format("RudderIntegration: Lotame: Message type %s is not supported", eventType));
@@ -103,20 +103,5 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
         } else {
             RudderLogger.logDebug("RudderIntegration: Lotame: processEvent: eventType null");
         }
-    }
-
-    private void identify(@NonNull RudderMessage message) {
-        String userId = message.getUserId();
-        if (userId != null) {
-            lotameClient.syncDspUrls(userId, this.dspUrls);
-        } else {
-            RudderLogger.logWarn("RudderIntegration: Lotame: identify: no userId found, " +
-                    "not syncing any pixels");
-        }
-    }
-
-    private void screen(@NonNull RudderMessage message) {
-        String userId = message.getUserId();
-        lotameClient.processBcpUrls(this.bcpUrls, this.dspUrls, userId);
     }
 }

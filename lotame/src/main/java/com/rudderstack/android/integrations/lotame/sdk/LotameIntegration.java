@@ -1,10 +1,14 @@
-package com.rudderstack.android.integrations.lotame;
+package com.rudderstack.android.integrations.lotame.sdk;
 
 import android.app.Application;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,12 +24,11 @@ import java.util.regex.PatternSyntaxException;
 public class LotameIntegration {
     private static final long SYNC_INTERVAL = 1000 * 60 * 60 * 24 * 7; // 7 days in milliseconds
 
-    private static Map<String, String> mappings;
-    private static LotameStorage storage;
-    private static ExecutorService es;
-    private static LotameSyncCallback callback;
+    private Map<String, String> mappings;
+    private LotameStorage storage;
+    private ExecutorService es;
+    private LotameSyncCallback callback;
     private static LotameIntegration instance;
-
 
     /**
      * Returns an instance of {@code LotameIntegration}.
@@ -38,21 +41,20 @@ public class LotameIntegration {
      */
     public static LotameIntegration getInstance(
             @NonNull Application application,
-            @Nullable Map<String, String> mappings
+            @Nullable Map<String, String> mappings,
+            int logLevel
     ) {
         if (instance == null) {
-            instance = new LotameIntegration(application, mappings);
-        } else {
-            instance.storage = LotameStorage.getInstance(application);
-            instance.mappings = mappings;
+            instance = new LotameIntegration(application, mappings, logLevel);
         }
         return instance;
     }
 
-    private LotameIntegration(Application application, Map<String, String> mappings) {
+    private LotameIntegration(Application application, Map<String, String> mappings, int logLevel) {
         this.storage = LotameStorage.getInstance(application);
         this.mappings = mappings;
         this.es = Executors.newSingleThreadExecutor();
+        Logger.init(logLevel);
     }
 
     /**
@@ -82,62 +84,10 @@ public class LotameIntegration {
     public void makeGetRequest(String url) {
         // create and configure the GET request
         Logger.logDebug(String.format(Locale.US, "Creating a GET request with url %s", url));
-        Runnable req = Utils.getRunnable(url);
 
         // make the get request
         if (es != null) {
-            es.submit(req);
-        }
-    }
-
-    // TODO: Add random support. {{random}} should be replaced with a random number
-    private String compileUrl(String url, String userId, String randomValue) {
-        String replacePattern = "\\{\\{%s\\}\\}";
-        String key = null, value = null;
-        try {
-            url = url.replaceAll(String.format(replacePattern, "random"), URLEncoder.encode(randomValue));
-            if (userId != null) {
-                url = url.replaceAll(String.format(replacePattern, "userId"), URLEncoder.encode(userId));
-            }
-            if (mappings != null) {
-                for (Map.Entry<String, String> entry : mappings.entrySet()) {
-                    key = entry.getKey();
-                    value = URLEncoder.encode(entry.getValue());
-                    url = url.replaceAll(String.format(replacePattern, key), value);
-                }
-            }
-        } catch (PatternSyntaxException ex) {
-            Logger.logError(String.format("Error while compiling url %s." +
-                            "Failed to replace {{%s}} with %s : %s"
-                    , url, key, value, ex.getLocalizedMessage()));
-        }
-        return url;
-    }
-
-    private boolean areDspUrlsToBeSynced() {
-        long lastSyncTime = storage.getLastSyncTime();
-        long currentTime = Utils.getCurrentTime();
-        if (lastSyncTime == -1) {
-            return true;
-        } else {
-            return (currentTime - lastSyncTime) >= SYNC_INTERVAL;
-        }
-        // CHECK: can we simplify the return ..ask?
-    }
-
-    private void processUrls(
-            String urlType,
-            ArrayList<String> urls,
-            String userId
-    ) {
-        String currentTime = String.valueOf(Utils.getCurrentTime());
-        if (urls != null) {
-            for (String url : urls) {
-                url = compileUrl(url, userId, currentTime);
-                makeGetRequest(url);
-            }
-        } else {
-            Logger.logWarn(String.format("no %sUrls found in config", urlType));
+            es.submit(this.getRunnable(url));
         }
     }
 
@@ -205,5 +155,86 @@ public class LotameIntegration {
     public void reset() {
         Logger.logDebug("Resetting Storage");
         storage.reset();
+    }
+
+    private String compileUrl(String url, String userId, String randomValue) {
+        String replacePattern = "\\{\\{%s\\}\\}";
+        String key = null, value = null;
+        try {
+            url = url.replaceAll(String.format(replacePattern, "random"), URLEncoder.encode(randomValue));
+            if (userId != null) {
+                url = url.replaceAll(String.format(replacePattern, "userId"), URLEncoder.encode(userId));
+            }
+            if (mappings != null) {
+                for (Map.Entry<String, String> entry : mappings.entrySet()) {
+                    key = entry.getKey();
+                    value = URLEncoder.encode(entry.getValue());
+                    url = url.replaceAll(String.format(replacePattern, key), value);
+                }
+            }
+        } catch (PatternSyntaxException ex) {
+            Logger.logError(String.format("Error while compiling url %s." +
+                            "Failed to replace {{%s}} with %s : %s"
+                    , url, key, value, ex.getLocalizedMessage()));
+        }
+        return url;
+    }
+
+    private boolean areDspUrlsToBeSynced() {
+        long lastSyncTime = storage.getLastSyncTime();
+        long currentTime = new Date().getTime();
+        if (lastSyncTime == -1) {
+            return true;
+        } else {
+            return (currentTime - lastSyncTime) >= SYNC_INTERVAL;
+        }
+        // CHECK: can we simplify the return ..ask?
+    }
+
+    private void processUrls(
+            String urlType,
+            ArrayList<String> urls,
+            String userId
+    ) {
+        String currentTime = String.valueOf(new Date().getTime());
+        if (urls != null) {
+            for (String url : urls) {
+                url = compileUrl(url, userId, currentTime);
+                makeGetRequest(url);
+            }
+        } else {
+            Logger.logWarn(String.format("no %sUrls found in config", urlType));
+        }
+    }
+
+    private Runnable getRunnable(final String url) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // create and configure the http connection
+                    HttpURLConnection httpConnection = (HttpURLConnection) new URL(url).openConnection();
+                    httpConnection.setRequestMethod("GET");
+
+                    // make the get request
+                    Logger.logDebug(String.format("Sending GET request to %s", url));
+                    httpConnection.connect();
+
+                    // get the response code
+                    int responseCode = httpConnection.getResponseCode();
+                    if (responseCode < 400) {
+                        Logger.logDebug(String.format(Locale.US, "GET request to %s returned a %d response", url, responseCode));
+                    } else {
+                        Logger.logError(String.format(Locale.US, "GET request to %s returned a %d response", url, responseCode));
+                    }
+                } catch (MalformedURLException ex) {
+                    Logger.logError(String.format(Locale.US, "Malformed URL %s : %s",
+                            url, ex.getLocalizedMessage()));
+                } catch (IOException ex) {
+                    Logger.logError(String.format(Locale.US, "Error while making request to %s : %s",
+                            url, ex.getLocalizedMessage()));
+                }
+            }
+        };
     }
 }

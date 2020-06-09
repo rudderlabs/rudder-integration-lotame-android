@@ -1,4 +1,4 @@
-package com.rudderstack.android.integrations.lotame;
+package com.rudderstack.android.integrations.lotame.sdk;
 
 import android.util.Log;
 
@@ -36,12 +36,6 @@ public class Logger {
     public static void logDebug(String message) {
         if (logLevel >= LogLevel.DEBUG) {
             Log.d(TAG, "Debug: " + message);
-        }
-    }
-
-    public static void logVerbose(String message) {
-        if (logLevel >= LogLevel.VERBOSE) {
-            Log.v(TAG, "Verbose: " + message);
         }
     }
 

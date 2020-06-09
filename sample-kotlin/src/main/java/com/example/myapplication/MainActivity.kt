@@ -5,9 +5,8 @@ import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import com.rudderstack.android.integrations.lotame.LotameIntegration
+import com.rudderstack.android.integrations.lotame.sdk.LotameIntegration
 import com.rudderstack.android.integrations.lotame.LotameIntegrationFactory
-import com.rudderstack.android.integrations.lotame.LotameSyncCallback
 import com.rudderstack.android.sdk.core.RudderClient
 import com.rudderstack.android.sdk.core.RudderConfig
 import com.rudderstack.android.sdk.core.RudderLogger

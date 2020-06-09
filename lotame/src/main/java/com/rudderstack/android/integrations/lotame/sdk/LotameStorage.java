@@ -1,4 +1,4 @@
-package com.rudderstack.android.integrations.lotame;
+package com.rudderstack.android.integrations.lotame.sdk;
 
 import android.app.Application;
 import android.content.Context;
@@ -21,14 +21,12 @@ class LotameStorage {
         return storageInstance;
     }
 
-    // CHECK: do we need static here? 
     void setLastSyncTime(long syncTime) {
         if (storage != null) {
-            storage.edit().putLong(LOTAME_LAST_SYNC_TIME, syncTime).commit();
+            storage.edit().putLong(LOTAME_LAST_SYNC_TIME, syncTime).apply();
         }
     }
 
-    // CHECK: do we need static here? 
     long getLastSyncTime() {
         if (storage != null) {
             return storage.getLong(LOTAME_LAST_SYNC_TIME, -1);
@@ -39,7 +37,7 @@ class LotameStorage {
 
     void reset() {
         if (storage != null) {
-            storage.edit().clear().commit();
+            storage.edit().clear().apply();
         }
     }
 }

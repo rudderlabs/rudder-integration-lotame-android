@@ -70,6 +70,7 @@ public class LotameIntegration {
     private void executeCallback() {
         if (callback != null) {
             callback.onSync();
+            Logger.logDebug("onSync callback executed");
         } else {
             Logger.logDebug("No onSync callback registered");
         }
@@ -146,6 +147,7 @@ public class LotameIntegration {
             @NonNull String userId,
             @Nullable ArrayList<String> dspUrls
     ) {
+        Logger.logDebug(String.format(Locale.US, "Processing DSP Urls : %s", dspUrls));
         processUrls("dsp", dspUrls, userId);
     }
 
@@ -188,7 +190,6 @@ public class LotameIntegration {
         } else {
             return (currentTime - lastSyncTime) >= SYNC_INTERVAL;
         }
-        // CHECK: can we simplify the return ..ask?
     }
 
     private void processUrls(
@@ -203,7 +204,7 @@ public class LotameIntegration {
                 makeGetRequest(url);
             }
         } else {
-            Logger.logWarn(String.format("no %sUrls found in config", urlType));
+            Logger.logWarn(String.format("No %sUrls found in config", urlType));
         }
     }
 

@@ -35,24 +35,10 @@ class MainActivity : AppCompatActivity() {
 
         rudderClient.onIntegrationReady("Lotame") {
             (it as LotameIntegration).registerCallback {
-
+                // your custom code
             }
         }
 
-//        class LC : LotameSyncCallback {
-//            override fun onSync(instance: LotameIntegration) {
-//                RudderLogger.logInfo("SYnxx")
-//            }
-//
-//        }
-//
-//        class C : RudderClient.Callback {
-//            override fun onReady(instance: Any?) {
-//                (instance as LotameIntegration).registerCallback(LC());
-//            }
-//        }
-
-        rudderClient.onIntegrationReady("Lotame", C())
         rudderClient.track("new event")
         rudderClient.identify("new user");
         rudderClient.screen("new screen");

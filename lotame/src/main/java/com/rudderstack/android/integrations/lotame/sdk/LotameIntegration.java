@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -163,14 +164,15 @@ public class LotameIntegration {
         String replacePattern = "\\{\\{%s\\}\\}";
         String key = null, value = null;
         try {
-            url = url.replaceAll(String.format(replacePattern, "random"), URLEncoder.encode(randomValue));
+            url = url.replaceAll(String.format(replacePattern, "random"), randomValue);
             if (userId != null) {
-                url = url.replaceAll(String.format(replacePattern, "userId"), URLEncoder.encode(userId));
+                url = url.replaceAll(String.format(replacePattern, "userId"),
+                        URLEncoder.encode(userId, "UTF-8"));
             }
             if (mappings != null) {
                 for (Map.Entry<String, String> entry : mappings.entrySet()) {
                     key = entry.getKey();
-                    value = URLEncoder.encode(entry.getValue());
+                    value = entry.getValue();
                     url = url.replaceAll(String.format(replacePattern, key), value);
                 }
             }
@@ -178,6 +180,9 @@ public class LotameIntegration {
             Logger.logError(String.format("Error while compiling url %s." +
                             "Failed to replace {{%s}} with %s : %s"
                     , url, key, value, ex.getLocalizedMessage()));
+        } catch (UnsupportedEncodingException ex) {
+            Logger.logError(String.format("Error while URL encoding userId %s: %s"
+                    , userId, ex.getLocalizedMessage()));
         }
         return url;
     }

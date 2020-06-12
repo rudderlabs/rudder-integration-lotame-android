@@ -86,15 +86,18 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
         if (eventType != null) {
             switch (eventType) {
                 case MessageType.SCREEN:
-                    lotameClient.processBcpUrls(
-                            this.bcpUrls,
-                            this.dspUrls,
-                            message.getUserId()
-                    );
+                    if (message.getUserId() != null) {
+                        lotameClient.syncBcpAndDspUrls(
+                                message.getUserId(),
+                                this.bcpUrls,
+                                this.dspUrls
+                        );
+                    }
+
                     break;
                 case MessageType.IDENTIFY:
                     if (message.getUserId() != null) {
-                        lotameClient.syncDspUrls(message.getUserId(), this.dspUrls);
+                        lotameClient.syncDspUrls(message.getUserId(), this.dspUrls, true);
                     } else {
                         RudderLogger.logWarn("RudderIntegration: Lotame: identify: no userId found, not syncing any pixels");
                     }

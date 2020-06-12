@@ -1,17 +1,12 @@
-package com.example.myapplication
+package com.rudderstack.example.lotame
+
 
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import com.rudderstack.android.integrations.lotame.sdk.LotameIntegration
-import com.rudderstack.android.integrations.lotame.LotameIntegrationFactory
-import com.rudderstack.android.sdk.core.RudderClient
-import com.rudderstack.android.sdk.core.RudderConfig
-import com.rudderstack.android.sdk.core.RudderLogger
-
-
+import androidx.appcompat.app.AppCompatActivity
+import com.rudderstack.example.lotame.MainApplication.Companion.rudderClient
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -26,22 +21,9 @@ class MainActivity : AppCompatActivity() {
                 .setAction("Action", null).show()
         }
 
-        val rudderClient = RudderClient.getInstance(
-            this, "1YyzMKUnUZJ6XNRkdHJCayV5fzM", RudderConfig.Builder()
-                .withDataPlaneUrl("https://hosted.rudderlabs.com")
-                .withLogLevel(RudderLogger.RudderLogLevel.DEBUG)
-                .withFactory(LotameIntegrationFactory.FACTORY)
-        )
-
-        rudderClient.onIntegrationReady("Lotame") {
-            (it as LotameIntegration).registerCallback {
-                // your custom code
-            }
-        }
-
-        rudderClient.track("new event")
-        rudderClient.identify("new user");
-        rudderClient.screen("new screen");
+        rudderClient!!.track("new event")
+//        rudderClient!!.identify("new user")
+        rudderClient!!.screen("new screen")
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

@@ -11,8 +11,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -68,13 +68,63 @@ public class LotameIntegration {
         Logger.logInfo("onSync callback successfully registered");
     }
 
-    private void executeCallback() {
-        if (callback != null) {
-            callback.onSync();
-            Logger.logDebug("onSync callback executed");
-        } else {
-            Logger.logDebug("No onSync callback registered");
+    /**
+     * Syncs the urls in {@code bcpUrls} by sending a GET request for each one of them.
+     *
+     * @param userId  Your userId
+     * @param bcpUrls The list of the urls to be synced
+     */
+    public void syncBcpUrls(
+            @NonNull String userId,
+            @Nullable List<String> bcpUrls
+    ) {
+        Logger.logDebug(String.format(Locale.US, "Syncing BCP Urls : %s", bcpUrls));
+        this.processUrls("bcp", userId, bcpUrls);
+    }
+
+    /**
+     * Syncs the urls in {@code dspUrls} by sending a GET request for each one of them.
+     * Sets the last sync time and executes the onSync callback.
+     *
+     * @param userId  Your userId
+     * @param dspUrls The list of the urls to be synced
+     */
+    public void syncDspUrls(
+            @NonNull String userId,
+            @Nullable List<String> dspUrls,
+            boolean force
+    ) {
+        Logger.logDebug(String.format(Locale.US, "Syncing DSP Urls : %s", dspUrls));
+
+        // sync dsp urls if 7 days have passed since they were last synced
+        if (force || areDspUrlsToBeSynced()) {
+            Logger.logDebug("Last DSP url sync was 7 days ago,syncing again");
+            this.processUrls("dsp", userId, dspUrls);
+
+            // set last sync time
+            Logger.logDebug("Updating last sync time with current time");
+            storage.setLastSyncTime(new Date().getTime());
+
+            // execute onSync callback
+            Logger.logDebug("Executing onSync callback");
+            executeCallback();
         }
+    }
+
+    /**
+     * Syncs the urls in {@code bcpUrls} and {@code dspRules} by sending a GET request for each one of them.
+     *
+     * @param userId  Your userId
+     * @param bcpUrls The list of BCP urls
+     * @param dspUrls The list of DSP urls
+     */
+    public void syncBcpAndDspUrls(
+            @NonNull String userId,
+            @Nullable List<String> bcpUrls,
+            @Nullable List<String> dspUrls
+    ) {
+        this.syncBcpUrls(userId, bcpUrls);
+        this.syncDspUrls(userId, dspUrls, false);
     }
 
     /**
@@ -83,7 +133,7 @@ public class LotameIntegration {
      *
      * @param url The url that would be used to create the GET request
      */
-    public void makeGetRequest(String url) {
+    public void makeGetRequest(@NonNull String url) {
         // create and configure the GET request
         Logger.logDebug(String.format(Locale.US, "Creating a GET request with url %s", url));
 
@@ -94,65 +144,6 @@ public class LotameIntegration {
     }
 
     /**
-     * Syncs the urls in {@code dspUrls} by sending a GET request for each one of them.
-     * Sets the last sync time and executes the onSync callback.
-     *
-     * @param userId  Your userId
-     * @param dspUrls the list of the urls to be synced
-     */
-    public void syncDspUrls(
-            @NonNull String userId,
-            @Nullable ArrayList<String> dspUrls
-    ) {
-        Logger.logDebug(String.format(Locale.US, "Syncing DSP Urls : %s", dspUrls));
-        processDspUrls(userId, dspUrls);
-
-        // set last sync time
-        Logger.logDebug("Updating last sync time with current time");
-        storage.setLastSyncTime(new Date().getTime());
-
-        // execute onSync callback
-        Logger.logDebug("Executing onSync callback");
-        executeCallback();
-    }
-
-    /**
-     * Sends a GET request for each url in {@code bcpUrls}.
-     * Syncs the DSP urls if 7 days have passed since the last sync.
-     *
-     * @param bcpUrls the list of bcpUrls
-     * @param dspUrls the list of dspUrls
-     * @param userId  Your userId
-     */
-    public void processBcpUrls(
-            @Nullable ArrayList<String> bcpUrls,
-            @Nullable ArrayList<String> dspUrls,
-            @Nullable String userId
-    ) {
-        Logger.logDebug(String.format(Locale.US, "Processing BCP Urls : %s", bcpUrls));
-        processUrls("bcp", bcpUrls, null);
-        // sync dsp urls if 7 days have passed since they were last synced
-        if (userId != null && areDspUrlsToBeSynced()) {
-            Logger.logDebug("Last DSP url sync was 7 days ago,syncing again");
-            syncDspUrls(userId, dspUrls);
-        }
-    }
-
-    /**
-     * Sends a GET request for each url in {@code dspUrls}.
-     *
-     * @param userId  Your userId
-     * @param dspUrls the list of dspUrls
-     */
-    public void processDspUrls(
-            @NonNull String userId,
-            @Nullable ArrayList<String> dspUrls
-    ) {
-        Logger.logDebug(String.format(Locale.US, "Processing DSP Urls : %s", dspUrls));
-        processUrls("dsp", dspUrls, userId);
-    }
-
-    /**
      * Resets the last sync time
      */
     public void reset() {
@@ -160,22 +151,39 @@ public class LotameIntegration {
         storage.reset();
     }
 
-    private String compileUrl(String url, String userId, String randomValue) {
+    private void executeCallback() {
+        if (this.callback != null) {
+            this.callback.onSync();
+            Logger.logDebug("onSync callback executed");
+        } else {
+            Logger.logDebug("No onSync callback registered");
+        }
+    }
+
+    @Nullable
+    private String compileUrl(
+            @NonNull String url,
+            @NonNull String userId,
+            @NonNull String randomValue
+    ) {
         String replacePattern = "\\{\\{%s\\}\\}";
         String key = null, value = null;
         try {
-            url = url.replaceAll(String.format(replacePattern, "random"), randomValue);
-            if (userId != null) {
-                url = url.replaceAll(String.format(replacePattern, "userId"),
-                        URLEncoder.encode(userId, "UTF-8"));
-            }
-            if (mappings != null) {
-                for (Map.Entry<String, String> entry : mappings.entrySet()) {
+            String compiledUrl = url.replaceAll(
+                    String.format(replacePattern, "random"),
+                    randomValue
+            ).replaceAll(
+                    String.format(replacePattern, "userId"),
+                    URLEncoder.encode(userId, "UTF-8")
+            );
+            if (this.mappings != null) {
+                for (Map.Entry<String, String> entry : this.mappings.entrySet()) {
                     key = entry.getKey();
                     value = entry.getValue();
-                    url = url.replaceAll(String.format(replacePattern, key), value);
+                    compiledUrl = compiledUrl.replaceAll(String.format(replacePattern, key), value);
                 }
             }
+            return compiledUrl;
         } catch (PatternSyntaxException ex) {
             Logger.logError(String.format("Error while compiling url %s." +
                             "Failed to replace {{%s}} with %s : %s"
@@ -184,36 +192,33 @@ public class LotameIntegration {
             Logger.logError(String.format("Error while URL encoding userId %s: %s"
                     , userId, ex.getLocalizedMessage()));
         }
-        return url;
+        return null;
     }
 
     private boolean areDspUrlsToBeSynced() {
-        long lastSyncTime = storage.getLastSyncTime();
-        long currentTime = new Date().getTime();
-        if (lastSyncTime == -1) {
-            return true;
-        } else {
-            return (currentTime - lastSyncTime) >= SYNC_INTERVAL;
-        }
+        return (this.storage.getLastSyncTime() == -1) ||
+                ((new Date().getTime() - this.storage.getLastSyncTime()) >= SYNC_INTERVAL);
     }
 
     private void processUrls(
-            String urlType,
-            ArrayList<String> urls,
-            String userId
+            @NonNull String urlType,
+            @NonNull String userId,
+            @Nullable List<String> urls
     ) {
         String currentTime = String.valueOf(new Date().getTime());
         if (urls != null) {
             for (String url : urls) {
                 url = compileUrl(url, userId, currentTime);
-                makeGetRequest(url);
+                if (url != null) {
+                    makeGetRequest(url);
+                }
             }
         } else {
-            Logger.logWarn(String.format("No %sUrls found in config", urlType));
+            Logger.logWarn(String.format("%sUrl list is empty", urlType));
         }
     }
 
-    private Runnable getRunnable(final String url) {
+    private Runnable getRunnable(@NonNull final String url) {
         return new Runnable() {
             @Override
             public void run() {

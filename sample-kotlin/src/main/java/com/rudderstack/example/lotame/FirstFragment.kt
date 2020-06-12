@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.rudderstack.example.lotame
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment

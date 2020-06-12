@@ -33,6 +33,7 @@ class MainApplication : Application() {
             (it as LotameIntegration).registerCallback {
                 // your custom code
                 println("Lotame sync callback fired")
+                rudderClient!!.track("sync pixels fired")
             }
         }
     }

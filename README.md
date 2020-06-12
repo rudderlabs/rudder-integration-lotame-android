@@ -50,8 +50,7 @@ val rudderClient: RudderClient = RudderClient.getInstance(
 
 ## Register your `onSync` callback
 DSP pixels are always synced after an `identify` call and we sync the pixels once in every 7 days. We check for the time elapsed since last sync in every `screen` call.
-You can get notified about the DSP Pixels syncs by registering a callback. The code snippet below shows the examle:
-
+You can get notified about the DSP Pixels syncs by registering a callback. The code snippet below shows the example:
 ```
 rudderClient.onIntegrationReady("Lotame") {
     (it as LotameIntegration).registerCallback {

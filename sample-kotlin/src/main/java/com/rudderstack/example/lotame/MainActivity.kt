@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         rudderClient!!.track("new event")
-//        rudderClient!!.identify("new user")
+        rudderClient!!.identify("new user")
         rudderClient!!.screen("new screen")
     }
 

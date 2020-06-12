@@ -37,6 +37,10 @@ android {
 
 }
 
+repositories {
+    maven { url "https://dl.bintray.com/rudderstack/rudderstack" }
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -46,10 +50,12 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     implementation 'androidx.navigation:navigation-fragment-ktx:2.2.2'
     implementation 'androidx.navigation:navigation-ui-ktx:2.2.2'
+
+    implementation 'com.rudderstack.android.sdk:core:1.0.2'
+    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'com.rudderstack.android.integration:lotame:0.1.0'
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    implementation 'com.rudderstack.android.sdk:core:1.0.2'
-    implementation 'com.google.code.gson:gson:2.8.6'
-    implementation project(':lotame')
 }

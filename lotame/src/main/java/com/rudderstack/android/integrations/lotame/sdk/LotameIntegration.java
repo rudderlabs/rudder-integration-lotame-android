@@ -26,6 +26,7 @@ public class LotameIntegration {
     private static final long SYNC_INTERVAL = 1000 * 60 * 60 * 24 * 7; // 7 days in milliseconds
 
     private Map<String, String> mappings;
+    private String advertisingId;
     private LotameStorage storage;
     private ExecutorService es;
     private LotameSyncCallback callback;
@@ -36,25 +37,28 @@ public class LotameIntegration {
      * Creates and returns a new instance if it has been called for the first time.
      * Modifies and returns a pre-existing instance, if otherwise.
      *
-     * @param application The parent application using the SDK
-     * @param mappings    Contains the fields you would like to replace in your urls
+     * @param application    The parent application using the SDK
+     * @param mappings       Contains the fields you would like to replace in your urls
+     * @param advertisingId  Your device's advertising ID
      * @return An instance of {@code LotameIntegration}
      */
     public static LotameIntegration getInstance(
             @NonNull Application application,
             @Nullable Map<String, String> mappings,
-            int logLevel
+            int logLevel,
+            String advertisingId
     ) {
         if (instance == null) {
-            instance = new LotameIntegration(application, mappings, logLevel);
+            instance = new LotameIntegration(application, mappings, logLevel, advertisingId);
         }
         return instance;
     }
 
-    private LotameIntegration(Application application, Map<String, String> mappings, int logLevel) {
+    private LotameIntegration(Application application, Map<String, String> mappings, int logLevel, String advertisingId) {
         this.storage = LotameStorage.getInstance(application);
         this.mappings = mappings;
         this.es = Executors.newSingleThreadExecutor();
+        this.advertisingId = advertisingId;
         Logger.init(logLevel);
     }
 
@@ -176,6 +180,15 @@ public class LotameIntegration {
                     String.format(replacePattern, "userId"),
                     URLEncoder.encode(userId, "UTF-8")
             );
+            if (advertisingId != null) {
+                compiledUrl = compiledUrl.replaceAll(
+                        String.format(replacePattern, "DEVICE_ID"),
+                        advertisingId
+                ).replaceAll(
+                        String.format(replacePattern, "DEVICE_TYPE"),
+                        "GAID"
+                );
+            }
             if (this.mappings != null) {
                 for (Map.Entry<String, String> entry : this.mappings.entrySet()) {
                     key = entry.getKey();

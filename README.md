@@ -1,9 +1,9 @@
 # What is Rudder?
 
-**Short answer:** 
+**Short answer:**
 Rudder is an open-source Segment alternative written in Go, built for the enterprise. .
 
-**Long answer:** 
+**Long answer:**
 Rudder is a platform for collecting, storing and routing customer event data to dozens of tools. Rudder is open-source, can run in your cloud environment (AWS, GCP, Azure or even your data-centre) and provides a powerful transformation framework to process your event data on the fly.
 
 Released under [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
@@ -20,7 +20,7 @@ repositories {
 3. Add the dependency under ```dependencies```
 ```
 implementation 'com.rudderstack.android.sdk:core:1.+'
-implementation 'com.rudderstack.android.integration:lotame:0.1.0'
+implementation 'com.rudderstack.android.integration:lotame:0.1.1'
 ```
 4. If your lotame urls follow the HTTP protocol, you need to allow the ClearTextTraffic for your App. Add `android:usesCleartextTraffic="true"` in your `<application>` tag of your app's `Android Maifest` file.
 After adding the above text, the file would look something like below:

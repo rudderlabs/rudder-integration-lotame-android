@@ -8,6 +8,7 @@ import com.rudderstack.android.integrations.lotame.sdk.LotameIntegration;
 import com.rudderstack.android.sdk.core.MessageType;
 import com.rudderstack.android.sdk.core.RudderClient;
 import com.rudderstack.android.sdk.core.RudderConfig;
+import com.rudderstack.android.sdk.core.RudderContext;
 import com.rudderstack.android.sdk.core.RudderIntegration;
 import com.rudderstack.android.sdk.core.RudderLogger;
 import com.rudderstack.android.sdk.core.RudderMessage;
@@ -52,10 +53,12 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
         if (configMap != null && client.getApplication() != null) {
             bcpUrls = getUrlConfig("bcp", configMap);
             dspUrls = getUrlConfig("dsp", configMap);
+            RudderContext rudderContext = client.getRudderContext();
             lotameClient = LotameIntegration.getInstance(
                     client.getApplication(),
                     getMappingConfig(configMap),
-                    rudderConfig.getLogLevel()
+                    rudderConfig.getLogLevel(),
+                    rudderContext.getAdvertisingId()
             );
         }
     }

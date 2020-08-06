@@ -40,7 +40,7 @@ dependencies {
     implementation 'androidx.annotation:annotation:1.1.0'
 
     // rudder core sdk
-    compileOnly 'com.rudderstack.android.sdk:core:1.0.2'
+    compileOnly 'com.rudderstack.android.sdk:core:1.0.2-patch.6'
     // lotame dependencies
     implementation 'com.google.code.gson:gson:2.8.6'
 }

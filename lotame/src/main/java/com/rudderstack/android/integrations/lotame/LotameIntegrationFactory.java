@@ -22,7 +22,7 @@ import java.util.Map;
  */
 public class LotameIntegrationFactory extends RudderIntegration<LotameIntegration> {
 
-    private static final String LOTAME_KEY = "Lotame";
+    private static final String LOTAME_KEY = "Lotame Mobile";
     private ArrayList<String> bcpUrls = null;
     private ArrayList<String> dspUrls = null;
     private LotameIntegration lotameClient;

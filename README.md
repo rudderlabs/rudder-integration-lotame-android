@@ -20,7 +20,7 @@ repositories {
 3. Add the dependency under ```dependencies```
 ```
 implementation 'com.rudderstack.android.sdk:core:1.+'
-implementation 'com.rudderstack.android.integration:lotame:1.0.0'
+implementation 'com.rudderstack.android.integration:lotame:1.0.1'
 ```
 4. If your lotame urls follow the HTTP protocol, you need to allow the ClearTextTraffic for your App. Add `android:usesCleartextTraffic="true"` in your `<application>` tag of your app's `Android Maifest` file.
 After adding the above text, the file would look something like below:
@@ -43,18 +43,19 @@ val rudderClient: RudderClient = RudderClient.getInstance(
     WRITE_KEY,
     RudderConfig.Builder()
         .withDataPlaneUrl(DATA_PLANE_URL)
-        .withFactory(LotameIntegrationFctory.FACTORY)
+        .withFactory(LotameIntegrationFactory.FACTORY)
         .build()
 )
 ```
 
 ## Register your `onSync` callback
-DSP pixels are always synced after an `identify` call and we sync the pixels once in every 7 days. We check for the time elapsed since last sync in every `screen` call.
-You can get notified about the DSP Pixels syncs by registering a callback. The code snippet below shows the example:
+You can get notified about the Pixel syncs by registering a callback. The code snippet below shows the example:
 ```
-rudderClient.onIntegrationReady("Lotame") {
-    (it as LotameIntegration).registerCallback {
-        // implement your logic
+rudderClient!!.onIntegrationReady("Lotame Mobile") {
+    (it as LotameIntegration).registerCallback { urlType, url ->
+        // urlType => "bcp", "dsp"
+        // url => complete url with all values replaced
+        println("LotameSync: $urlType : $url")
     }
 }
 ```

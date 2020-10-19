@@ -13,14 +13,13 @@ apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
+    compileSdkVersion 30
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 1
-        versionName "1.0.0"
+        versionName "1.0.1"
     }
 
     buildTypes {
@@ -40,7 +39,7 @@ dependencies {
     implementation 'androidx.annotation:annotation:1.1.0'
 
     // rudder core sdk
-    compileOnly 'com.rudderstack.android.sdk:core:1.0.2-patch.6'
+    compileOnly 'com.rudderstack.android.sdk:core:1.+'
     // lotame dependencies
     implementation 'com.google.code.gson:gson:2.8.6'
 }

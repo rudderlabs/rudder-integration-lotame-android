@@ -19,21 +19,21 @@ class MainApplication : Application() {
         super.onCreate()
 
         rudderClient = RudderClient.getInstance(
-            this,
-            WRITE_KEY,
-            RudderConfig.Builder().withDataPlaneUrl(DATA_PLANE_URL)
-                .withLogLevel(RudderLogger.RudderLogLevel.DEBUG)
-                .withTrackLifecycleEvents(true)
-                .withRecordScreenViews(true)
-                .withFactory(LotameIntegrationFactory.FACTORY)
-                .build()
+                this,
+                WRITE_KEY,
+                RudderConfig.Builder().withDataPlaneUrl(DATA_PLANE_URL)
+                        .withLogLevel(RudderLogger.RudderLogLevel.DEBUG)
+                        .withTrackLifecycleEvents(true)
+                        .withRecordScreenViews(true)
+                        .withFactory(LotameIntegrationFactory.FACTORY)
+                        .build()
         )
 
-        rudderClient!!.onIntegrationReady("Lotame") {
-            (it as LotameIntegration).registerCallback {
-                // your custom code
-                println("Lotame sync callback fired")
-                rudderClient!!.track("sync pixels fired")
+        rudderClient!!.onIntegrationReady("Lotame Mobile") {
+            (it as LotameIntegration).registerCallback { urlType, url ->
+                // urlType => "bcp", "dsp"
+                // url => complete url with all values replaced
+                println("LotameSync: $urlType : $url")
             }
         }
     }

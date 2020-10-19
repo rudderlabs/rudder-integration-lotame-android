@@ -25,10 +25,10 @@ import java.util.regex.PatternSyntaxException;
 public class LotameIntegration {
     private static final long SYNC_INTERVAL = 1000 * 60 * 60 * 24 * 7; // 7 days in milliseconds
 
-    private Map<String, String> mappings;
-    private String advertisingId;
-    private LotameStorage storage;
-    private ExecutorService es;
+    private final Map<String, String> mappings;
+    private final String advertisingId;
+    private final LotameStorage storage;
+    private final ExecutorService es;
     private LotameSyncCallback callback;
     private static LotameIntegration instance;
 
@@ -37,9 +37,9 @@ public class LotameIntegration {
      * Creates and returns a new instance if it has been called for the first time.
      * Modifies and returns a pre-existing instance, if otherwise.
      *
-     * @param application    The parent application using the SDK
-     * @param mappings       Contains the fields you would like to replace in your urls
-     * @param advertisingId  Your device's advertising ID
+     * @param application   The parent application using the SDK
+     * @param mappings      Contains the fields you would like to replace in your urls
+     * @param advertisingId Your device's advertising ID
      * @return An instance of {@code LotameIntegration}
      */
     public static LotameIntegration getInstance(
@@ -68,7 +68,7 @@ public class LotameIntegration {
      * @param cb the onSync callback, must implement the interface {@code LotameSyncCallback}
      */
     public void registerCallback(LotameSyncCallback cb) {
-        callback = cb;
+        this.callback = cb;
         Logger.logInfo("onSync callback successfully registered");
     }
 
@@ -108,10 +108,6 @@ public class LotameIntegration {
             // set last sync time
             Logger.logDebug("Updating last sync time with current time");
             storage.setLastSyncTime(new Date().getTime());
-
-            // execute onSync callback
-            Logger.logDebug("Executing onSync callback");
-            executeCallback();
         }
     }
 
@@ -153,15 +149,6 @@ public class LotameIntegration {
     public void reset() {
         Logger.logDebug("Resetting Storage");
         storage.reset();
-    }
-
-    private void executeCallback() {
-        if (this.callback != null) {
-            this.callback.onSync();
-            Logger.logDebug("onSync callback executed");
-        } else {
-            Logger.logDebug("No onSync callback registered");
-        }
     }
 
     @Nullable
@@ -222,8 +209,14 @@ public class LotameIntegration {
         if (urls != null) {
             for (String url : urls) {
                 url = compileUrl(url, userId, currentTime);
+
                 if (url != null) {
                     makeGetRequest(url);
+                    if (this.callback != null) {
+                        // execute callback if present
+                        this.callback.onSync(urlType, url);
+                        Logger.logDebug("onSync callback executed");
+                    }
                 }
             }
         } else {

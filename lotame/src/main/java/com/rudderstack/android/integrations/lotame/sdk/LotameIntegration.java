@@ -1,9 +1,12 @@
 package com.rudderstack.android.integrations.lotame.sdk;
 
 import android.app.Application;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.rudderstack.android.sdk.core.RudderLogger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -49,6 +52,7 @@ public class LotameIntegration {
             String advertisingId
     ) {
         if (instance == null) {
+            // correct (non-null & non-empty) value of advertisingId is ensured
             instance = new LotameIntegration(application, mappings, logLevel, advertisingId);
         }
         return instance;
@@ -167,10 +171,10 @@ public class LotameIntegration {
                     String.format(replacePattern, "userId"),
                     URLEncoder.encode(userId, "UTF-8")
             );
-            if (advertisingId != null) {
+            if (this.advertisingId != null) {
                 compiledUrl = compiledUrl.replaceAll(
                         String.format(replacePattern, "DEVICE_ID"),
-                        advertisingId
+                        this.advertisingId
                 ).replaceAll(
                         String.format(replacePattern, "DEVICE_TYPE"),
                         "GAID"

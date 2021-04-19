@@ -1,12 +1,10 @@
 package com.rudderstack.android.integrations.lotame.sdk;
 
 import android.app.Application;
-import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.rudderstack.android.sdk.core.RudderLogger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

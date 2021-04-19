@@ -1,6 +1,5 @@
 package com.rudderstack.android.integrations.lotame;
 
-import android.icu.util.ULocale;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;

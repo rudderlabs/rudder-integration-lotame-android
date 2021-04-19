@@ -1,5 +1,7 @@
 package com.rudderstack.android.integrations.lotame;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -48,27 +50,44 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
             @NonNull RudderClient client,
             @NonNull RudderConfig rudderConfig
     ) {
-        Map<String, Object> configMap = (Map<String, Object>) config;
-
-        if (configMap != null && client.getApplication() != null) {
-            bcpUrls = getUrlConfig("bcp", configMap);
-            dspUrls = getUrlConfig("dsp", configMap);
-            RudderContext rudderContext = client.getRudderContext();
-            lotameClient = LotameIntegration.getInstance(
-                    client.getApplication(),
-                    getMappingConfig(configMap),
-                    rudderConfig.getLogLevel(),
-                    rudderContext.getAdvertisingId()
-            );
+        RudderContext rudderContext = client.getRudderContext();
+        String advertisingId = rudderContext.getAdvertisingId();
+        if (TextUtils.isEmpty(advertisingId)) {
+            RudderLogger.logWarn("Invalid advertisingId. Aborting Lotame initialization");
+            return;
         }
+
+        if (RudderClient.getApplication() == null) {
+            RudderLogger.logWarn("Application context is null. Aborting Lotame initialization");
+            return;
+        }
+
+        Map<String, Object> configMap = (Map<String, Object>) config;
+        if (configMap == null) {
+            RudderLogger.logWarn("URL config map is empty. Aborting Lotame initialization");
+            return;
+        }
+
+        bcpUrls = getUrlConfig("bcp", configMap);
+        dspUrls = getUrlConfig("dsp", configMap);
+
+        lotameClient = LotameIntegration.getInstance(
+                RudderClient.getApplication(),
+                getMappingConfig(configMap),
+                rudderConfig.getLogLevel(),
+                rudderContext.getAdvertisingId()
+        );
     }
 
     @Override
     public void reset() {
-        lotameClient.reset();
+        if (lotameClient != null) {
+            lotameClient.reset();
+        }
     }
 
     @Override
+    @Nullable
     public LotameIntegration getUnderlyingInstance() {
         return this.lotameClient;
     }
@@ -89,7 +108,7 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
         if (eventType != null) {
             switch (eventType) {
                 case MessageType.SCREEN:
-                    if (message.getUserId() != null) {
+                    if (message.getUserId() != null && lotameClient != null) {
                         lotameClient.syncBcpAndDspUrls(
                                 message.getUserId(),
                                 this.bcpUrls,
@@ -99,7 +118,7 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
 
                     break;
                 case MessageType.IDENTIFY:
-                    if (message.getUserId() != null) {
+                    if (message.getUserId() != null && lotameClient != null) {
                         lotameClient.syncDspUrls(message.getUserId(), this.dspUrls, true);
                     } else {
                         RudderLogger.logWarn("RudderIntegration: Lotame: identify: no userId found, not syncing any pixels");

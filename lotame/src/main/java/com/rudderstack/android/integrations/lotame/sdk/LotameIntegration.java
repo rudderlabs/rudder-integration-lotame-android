@@ -5,6 +5,7 @@ import android.app.Application;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -49,6 +50,7 @@ public class LotameIntegration {
             String advertisingId
     ) {
         if (instance == null) {
+            // correct (non-null & non-empty) value of advertisingId is ensured
             instance = new LotameIntegration(application, mappings, logLevel, advertisingId);
         }
         return instance;
@@ -167,10 +169,10 @@ public class LotameIntegration {
                     String.format(replacePattern, "userId"),
                     URLEncoder.encode(userId, "UTF-8")
             );
-            if (advertisingId != null) {
+            if (this.advertisingId != null) {
                 compiledUrl = compiledUrl.replaceAll(
                         String.format(replacePattern, "DEVICE_ID"),
-                        advertisingId
+                        this.advertisingId
                 ).replaceAll(
                         String.format(replacePattern, "DEVICE_TYPE"),
                         "GAID"

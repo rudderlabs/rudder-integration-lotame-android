@@ -1,6 +1,7 @@
 package com.rudderstack.android.integrations.lotame.sdk;
 
 import android.app.Application;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -208,6 +209,14 @@ public class LotameIntegration {
         String currentTime = String.valueOf(new Date().getTime());
         if (urls != null) {
             for (String url : urls) {
+                // if there is DEVICE_ID in the url and we don't have a valid advertisingId
+                // **************
+                // skip the URL
+                // **************
+                if (url.toLowerCase().contains("device_id") && TextUtils.isEmpty(this.advertisingId)) {
+                    continue;
+                }
+
                 url = compileUrl(url, userId, currentTime);
 
                 if (url != null) {

@@ -17,7 +17,7 @@ repositories {
 3. Add the dependency under ```dependencies```
 ```
 implementation 'com.rudderstack.android.sdk:core:1.+'
-implementation 'com.rudderstack.android.integration:lotame:1.0.2'
+implementation 'com.rudderstack.android.integration:lotame:1.0.3'
 ```
 4. If your lotame urls follow the HTTP protocol, you need to allow the ClearTextTraffic for your App. Add `android:usesCleartextTraffic="true"` in your `<application>` tag of your app's `Android Maifest` file.
 After adding the above text, the file would look something like below:

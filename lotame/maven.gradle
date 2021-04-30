@@ -17,7 +17,7 @@ signing {
 
 group = 'com.rudderstack.android.integration'
 archivesBaseName = 'lotame'
-version = '1.0.2'
+version = '1.0.3'
 
 File secretPropsFile = project.rootProject.file('local.properties')
 if (secretPropsFile.exists()) {

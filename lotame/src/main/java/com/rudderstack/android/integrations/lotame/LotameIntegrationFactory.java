@@ -14,7 +14,6 @@ import com.rudderstack.android.sdk.core.RudderMessage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -115,13 +114,13 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
 
     private ArrayList<String> convertLinkedHashMapListToArrayList(
             String configType,
-            ArrayList<LinkedHashMap<String, String>> linkedHashMapList
+            ArrayList<Map<String, String>> linkedHashMapList
     ) {
         ArrayList<String> list = new ArrayList<>();
         String key = String.format("%sUrlTemplate", configType);
         String value;
         if (linkedHashMapList != null) {
-            for (LinkedHashMap<String, String> ltm : linkedHashMapList) {
+            for (Map<String, String> ltm : linkedHashMapList) {
                 value = ltm.get(key);
                 if (value != null && !value.isEmpty()) {
                     list.add(value);
@@ -132,13 +131,13 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
     }
 
     private Map<String, String> convertLinkedHashMapListToMap(
-            ArrayList<LinkedHashMap<String, String>> linkedHashMapList
+            ArrayList<Map<String, String>> linkedHashMapList
     ) {
         Map<String, String> map = new HashMap<>();
         String key, value;
 
         if (linkedHashMapList != null) {
-            for (LinkedHashMap<String, String> node : linkedHashMapList) {
+            for (Map<String, String> node : linkedHashMapList) {
                 key = node.get("key");
                 value = node.get("value");
                 if ((key != null && !key.isEmpty()) && (value != null && !value.isEmpty())) {
@@ -151,13 +150,13 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
     }
 
     private ArrayList<String> getUrlConfig(String configType, Map<String, Object> configMap) {
-        ArrayList<LinkedHashMap<String, String>> pixels, iFrames, list = new ArrayList<>();
+        ArrayList<Map<String, String>> pixels, iFrames, list = new ArrayList<>();
 
         String pixelKey = String.format("%sUrlSettingsPixel", configType);
         String iFrameKey = String.format("%sUrlSettingsIframe", configType);
 
-        pixels = (ArrayList<LinkedHashMap<String, String>>) configMap.get(pixelKey);
-        iFrames = (ArrayList<LinkedHashMap<String, String>>) configMap.get(iFrameKey);
+        pixels = (ArrayList<Map<String, String>>) configMap.get(pixelKey);
+        iFrames = (ArrayList<Map<String, String>>) configMap.get(iFrameKey);
 
         if (pixels != null) {
             list.addAll(pixels);
@@ -173,8 +172,8 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
     private Map<String, String> getMappingConfig(Map<String, Object> configMap) {
         if (!configMap.containsKey("mappings")) return null;
 
-        ArrayList<LinkedHashMap<String, String>> ltm =
-                (ArrayList<LinkedHashMap<String, String>>) configMap.get("mappings");
+        ArrayList<Map<String, String>> ltm =
+                (ArrayList<Map<String, String>>) configMap.get("mappings");
 
         return convertLinkedHashMapListToMap(ltm);
     }

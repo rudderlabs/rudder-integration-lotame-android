@@ -112,15 +112,15 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
         }
     }
 
-    private ArrayList<String> convertLinkedHashMapListToArrayList(
+    private ArrayList<String> convertMapListToArrayList(
             String configType,
-            ArrayList<Map<String, String>> linkedHashMapList
+            ArrayList<Map<String, String>> mapList
     ) {
         ArrayList<String> list = new ArrayList<>();
         String key = String.format("%sUrlTemplate", configType);
         String value;
-        if (linkedHashMapList != null) {
-            for (Map<String, String> ltm : linkedHashMapList) {
+        if (mapList != null) {
+            for (Map<String, String> ltm : mapList) {
                 value = ltm.get(key);
                 if (value != null && !value.isEmpty()) {
                     list.add(value);
@@ -130,14 +130,14 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
         return !list.isEmpty() ? list : null;
     }
 
-    private Map<String, String> convertLinkedHashMapListToMap(
-            ArrayList<Map<String, String>> linkedHashMapList
+    private Map<String, String> convertMapListToMap(
+            ArrayList<Map<String, String>> mapList
     ) {
         Map<String, String> map = new HashMap<>();
         String key, value;
 
-        if (linkedHashMapList != null) {
-            for (Map<String, String> node : linkedHashMapList) {
+        if (mapList != null) {
+            for (Map<String, String> node : mapList) {
                 key = node.get("key");
                 value = node.get("value");
                 if ((key != null && !key.isEmpty()) && (value != null && !value.isEmpty())) {
@@ -166,15 +166,15 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
             list.addAll(iFrames);
         }
 
-        return convertLinkedHashMapListToArrayList(configType, list);
+        return convertMapListToArrayList(configType, list);
     }
 
     private Map<String, String> getMappingConfig(Map<String, Object> configMap) {
         if (!configMap.containsKey("mappings")) return null;
 
-        ArrayList<Map<String, String>> ltm =
+        ArrayList<Map<String, String>> mapList =
                 (ArrayList<Map<String, String>>) configMap.get("mappings");
 
-        return convertLinkedHashMapListToMap(ltm);
+        return convertMapListToMap(mapList);
     }
 }

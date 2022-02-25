@@ -9,8 +9,8 @@ import com.rudderstack.android.sdk.core.RudderLogger
 
 class MainApplication : Application() {
     companion object {
-        const val DATA_PLANE_URL = "https://hosted.rudderlabs.com"
-        const val WRITE_KEY = "1d4rBcsSZXNFETnoVEIvaXY98vm"
+        const val DATA_PLANE_URL = "https://98fa-175-101-36-4.ngrok.io"
+        const val WRITE_KEY = "1pTxG1Tqxr7FCrqIy7j0p28AENV"
 
         var rudderClient: RudderClient? = null
     }
@@ -19,14 +19,14 @@ class MainApplication : Application() {
         super.onCreate()
 
         rudderClient = RudderClient.getInstance(
-                this,
-                WRITE_KEY,
-                RudderConfig.Builder().withDataPlaneUrl(DATA_PLANE_URL)
-                        .withLogLevel(RudderLogger.RudderLogLevel.DEBUG)
-                        .withTrackLifecycleEvents(true)
-                        .withRecordScreenViews(true)
-                        .withFactory(LotameIntegrationFactory.FACTORY)
-                        .build()
+            this,
+            WRITE_KEY,
+            RudderConfig.Builder().withDataPlaneUrl(DATA_PLANE_URL)
+                .withLogLevel(RudderLogger.RudderLogLevel.DEBUG)
+                .withTrackLifecycleEvents(true)
+                .withRecordScreenViews(true)
+                .withFactory(LotameIntegrationFactory.FACTORY)
+                .build()
         )
 
         rudderClient!!.onIntegrationReady("Lotame Mobile") {

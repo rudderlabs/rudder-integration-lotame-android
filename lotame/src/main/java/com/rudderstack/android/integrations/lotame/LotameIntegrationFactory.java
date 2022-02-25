@@ -3,7 +3,6 @@ package com.rudderstack.android.integrations.lotame;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.gson.internal.LinkedTreeMap;
 import com.rudderstack.android.integrations.lotame.sdk.LotameIntegration;
 import com.rudderstack.android.sdk.core.MessageType;
 import com.rudderstack.android.sdk.core.RudderClient;
@@ -50,7 +49,7 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
     ) {
         Map<String, Object> configMap = (Map<String, Object>) config;
 
-        if (configMap != null && client.getApplication() != null) {
+        if (configMap != null && RudderClient.getApplication() != null) {
             bcpUrls = getUrlConfig("bcp", configMap);
             dspUrls = getUrlConfig("dsp", configMap);
             RudderContext rudderContext = client.getRudderContext();
@@ -113,15 +112,15 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
         }
     }
 
-    private ArrayList<String> convertLinkedTreeMapListToArrayList(
+    private ArrayList<String> convertMapListToArrayList(
             String configType,
-            ArrayList<LinkedTreeMap<String, String>> linkedTreeMapList
+            ArrayList<Map<String, String>> mapList
     ) {
         ArrayList<String> list = new ArrayList<>();
         String key = String.format("%sUrlTemplate", configType);
         String value;
-        if (linkedTreeMapList != null) {
-            for (LinkedTreeMap<String, String> ltm : linkedTreeMapList) {
+        if (mapList != null) {
+            for (Map<String, String> ltm : mapList) {
                 value = ltm.get(key);
                 if (value != null && !value.isEmpty()) {
                     list.add(value);
@@ -131,14 +130,14 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
         return !list.isEmpty() ? list : null;
     }
 
-    private Map<String, String> convertLinkedTreeMapListToMap(
-            ArrayList<LinkedTreeMap<String, String>> linkedTreeMapList
+    private Map<String, String> convertMapListToMap(
+            ArrayList<Map<String, String>> mapList
     ) {
         Map<String, String> map = new HashMap<>();
         String key, value;
 
-        if (linkedTreeMapList != null) {
-            for (LinkedTreeMap<String, String> node : linkedTreeMapList) {
+        if (mapList != null) {
+            for (Map<String, String> node : mapList) {
                 key = node.get("key");
                 value = node.get("value");
                 if ((key != null && !key.isEmpty()) && (value != null && !value.isEmpty())) {
@@ -151,13 +150,13 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
     }
 
     private ArrayList<String> getUrlConfig(String configType, Map<String, Object> configMap) {
-        ArrayList<LinkedTreeMap<String, String>> pixels, iFrames, list = new ArrayList<>();
+        ArrayList<Map<String, String>> pixels, iFrames, list = new ArrayList<>();
 
         String pixelKey = String.format("%sUrlSettingsPixel", configType);
         String iFrameKey = String.format("%sUrlSettingsIframe", configType);
 
-        pixels = (ArrayList<LinkedTreeMap<String, String>>) configMap.get(pixelKey);
-        iFrames = (ArrayList<LinkedTreeMap<String, String>>) configMap.get(iFrameKey);
+        pixels = (ArrayList<Map<String, String>>) configMap.get(pixelKey);
+        iFrames = (ArrayList<Map<String, String>>) configMap.get(iFrameKey);
 
         if (pixels != null) {
             list.addAll(pixels);
@@ -167,15 +166,15 @@ public class LotameIntegrationFactory extends RudderIntegration<LotameIntegratio
             list.addAll(iFrames);
         }
 
-        return convertLinkedTreeMapListToArrayList(configType, list);
+        return convertMapListToArrayList(configType, list);
     }
 
     private Map<String, String> getMappingConfig(Map<String, Object> configMap) {
         if (!configMap.containsKey("mappings")) return null;
 
-        ArrayList<LinkedTreeMap<String, String>> ltm =
-                (ArrayList<LinkedTreeMap<String, String>>) configMap.get("mappings");
+        ArrayList<Map<String, String>> mapList =
+                (ArrayList<Map<String, String>>) configMap.get("mappings");
 
-        return convertLinkedTreeMapListToMap(ltm);
+        return convertMapListToMap(mapList);
     }
 }

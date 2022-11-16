@@ -17,7 +17,7 @@ jobs:
         with:
           workflow_id: ${{ github.event.workflow.id }}
 
-  snowplow-migrator-test:
+  rudder-integration-lotame-android-test:
     needs: cancel_previous
     runs-on: ubuntu-latest
 

@@ -35,9 +35,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-core-
       - name: Run Tests
-        run: ./gradlew rudder-snowplow-adapter:test
+        run: ./gradlew rudder-integration-lotame-android:test
       - name: Generate coverage report
-        run: ./gradlew rudder-snowplow-adapter:codeCoverageReport
+        run: ./gradlew rudder-integration-lotame-android:codeCoverageReport
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
 

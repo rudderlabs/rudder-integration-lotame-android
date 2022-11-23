@@ -17,7 +17,7 @@ jobs:
         with:
           workflow_id: ${{ github.event.workflow.id }}
 
-  rudder-integration-lotame-android-test:
+  lotame-test:
     needs: cancel_previous
     runs-on: ubuntu-latest
 
@@ -35,9 +35,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-core-
       - name: Run Tests
-        run: ./gradlew rudder-integration-lotame-android:test
+        run: ./gradlew lotame:test
       - name: Generate coverage report
-        run: ./gradlew rudder-integration-lotame-android:codeCoverageReport
+        run: ./gradlew lotame:codeCoverageReport
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
 

@@ -8,17 +8,22 @@ on:
     types: [ 'opened', 'reopened', 'edited', 'synchronize' ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   cancel_previous:
 
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
     runs-on: ubuntu-latest
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@v2
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
 
-      - uses: styfle/cancel-workflow-action@0.9.1
+      - uses: styfle/cancel-workflow-action@a40b8845c0683271d9f53dfcb887a7e181d3918b # 0.9.1
         with:
           workflow_id: ${{ github.event.workflow.id }}
 
@@ -28,15 +33,15 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@v2
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: cache gradle dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@8492260343ad570701412c2f464a5877dc76bace # v2
         with:
           path: |
             ~/.gradle/caches
@@ -49,7 +54,7 @@ jobs:
       - name: Generate coverage report
         run: ./gradlew rudder-integration-lotame-android:codeCoverageReport
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # v2.1.0
 
 #  android-test:
 #    needs: cancel_previous
@@ -60,7 +65,7 @@ jobs:
 #      - name: Grant execute permission for gradlew
 #        run: chmod +x gradlew
 #      - name: cache gradle dependencies
-#        uses: actions/cache@v2
+#        uses: actions/cache@8492260343ad570701412c2f464a5877dc76bace # v2
 #        with:
 #          path: |
 #            ~/.gradle/caches
@@ -73,7 +78,7 @@ jobs:
 #      - name: Generate coverage report
 #        run: ./gradlew android:codeCoverageReport
 #      - name: Upload coverage to Codecov
-#        uses: codecov/codecov-action@v2
+#        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # v2.1.0
 
 #  security:
 #    needs: cancel_previous

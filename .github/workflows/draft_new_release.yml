@@ -40,17 +40,8 @@ jobs:
           node-version: 16
           cache: 'npm'
 
-      # In order to make a commit, we need to initialize a user.
-      # You may choose to write something less generic here if you want, it doesn't matter functionality wise.
-      - name: Initialize mandatory git config
-        env:
-          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
-        run: |
-          git config user.name "GitHub actions"
-          git config user.email noreply@github.com
-
       # Calculate the next release version based on conventional semantic release
-      - name: Create release branch
+      - name: Calculate new version
         id: create-release
         env:
           HUSKY: 0
@@ -61,7 +52,7 @@ jobs:
           git fetch origin master --depth=1
           git merge origin/master
           current_version=$(cat gradle.properties | grep "VERSION_NAME" | cut -d'=' -f2)
-          
+
           npm run release -- --skip.commit --skip.tag --skip.changelog
           new_version=$(cat gradle.properties | grep "VERSION_NAME" | cut -d'=' -f2)
           git reset --hard
@@ -73,14 +64,23 @@ jobs:
           echo "Release type is $release_type"
           echo "New version is $new_version"
           echo "New release branch name is $branch_name"
-          git checkout -b "$branch_name"
-          git push --set-upstream origin "$branch_name"
-          
+
           echo "::set-output name=source_branch_name::$source_branch_name"
           echo "::set-output name=branch_name::$branch_name"
           echo "::set-output name=new_version::$new_version"
 
+      - name: Create release branch via GitHub API
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          BASE_SHA=$(git rev-parse origin/master)
+          gh api repos/${{ github.repository }}/git/refs \
+            --method POST \
+            -f ref="refs/heads/${{ steps.create-release.outputs.branch_name }}" \
+            -f sha="$BASE_SHA"
+
       - name: Update changelog & bump version
+        id: finish-release
         env:
           HUSKY: 0
         run: |
@@ -88,11 +88,19 @@ jobs:
           SUMMARY=$(((npx conventional-changelog -u) 2>&1) | sed "s/*/<br> */g" | sed "s/#/ /g" | tr -d '\n' || true)
           echo $SUMMARY
           echo "::set-output name=commit_summary::$SUMMARY"
-          npm run release
+          npm run release -- --skip.commit --skip.tag
 
-      - name: Push new version in release branch & tag
-        run: |
-          git push --follow-tags
+      - name: Create verified commit and tag via GitHub API
+        uses: ryancyq/github-signed-commit@e9f3b28c80da7be66d24b8f501a5abe82a6b855f # v1.2.0
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        with:
+          branch-name: ${{ steps.create-release.outputs.branch_name }}
+          commit-message: 'chore(release): v${{ steps.create-release.outputs.new_version }}'
+          files: |
+            CHANGELOG.md
+            gradle.properties
+          tag: 'v${{ steps.create-release.outputs.new_version }}'
 
       - name: Create pull request into main
         uses: repo-sync/pull-request@7e79a9f5dc3ad0ce53138f01df2fad14a04831c5 # v2.12.1

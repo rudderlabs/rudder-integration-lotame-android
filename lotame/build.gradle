@@ -2,6 +2,7 @@
 apply plugin: 'com.android.library'
 
 android {
+    namespace 'com.rudderstack.android.integrations.lotame'
     compileSdkVersion 30
 
     defaultConfig {
@@ -16,6 +17,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
         }
     }
 }

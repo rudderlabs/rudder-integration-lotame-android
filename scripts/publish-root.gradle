@@ -25,6 +25,7 @@ if (secretPropsFile.exists()) {
 nexusPublishing {
     repositories {
         sonatype {
+            stagingProfileId = sonatypeStagingProfileId
             username = ossrhUsername
             password = ossrhPassword
             nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))

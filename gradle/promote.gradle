@@ -52,6 +52,7 @@ if (secretPropsFile.exists()) {
 nexusPublishing {
     repositories {
         sonatype {
+            stagingProfileId = System.getenv("SONATYPE_STAGING_PROFILE_ID")
             username = System.getenv('NEXUS_USERNAME')
             password = System.getenv('NEXUS_PASSWORD')
 

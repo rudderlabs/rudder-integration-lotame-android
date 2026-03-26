@@ -2,11 +2,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 30
+    namespace 'com.rudderstack.android.integrations.lotame'
+    compileSdk 33
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 30
+        targetSdk 33
         versionCode 1
         versionName "1.0.4"
         consumerProguardFiles 'proguard-consumer-rules.pro'
@@ -16,6 +17,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
         }
     }
 }
@@ -31,11 +38,6 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.6'
 }
 
-ext {
-    PUBLISH_GROUP_ID = 'com.rudderstack.android.integration'
-    PUBLISH_VERSION = '1.0.4'
-    PUBLISH_ARTIFACT_ID = 'lotame'
-}
-
-apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
+apply from: rootProject.file('gradle/mvn-publish.gradle')
+apply from: rootProject.file('gradle/codecov.gradle')
 

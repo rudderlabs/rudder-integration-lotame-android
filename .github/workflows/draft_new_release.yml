@@ -8,11 +8,11 @@ permissions:
 
 jobs:
   draft-new-release:
+    permissions:
+      contents: read # to read repository contents for checkout
     name: Draft a new release
     runs-on: ubuntu-latest
-    permissions:
-      contents: read # GITHUB_TOKEN needs read to checkout
-    if: startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/hotfix/') || startsWith(github.ref, 'refs/heads/fix/')
+    if: startsWith(github.ref, 'refs/heads/feat/') || startsWith(github.ref, 'refs/heads/fix/') || startsWith(github.ref, 'refs/heads/chore/')
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
@@ -25,35 +25,32 @@ jobs:
         with:
           app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_PRIVATE_KEY }}
-          permission-contents: write # to create commits, tags, and push changes
+          permission-contents: write # to create commits and push changes
           permission-pull-requests: write # to create and update PRs
 
       - name: Checkout source branch
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
         with:
-          fetch-depth: 0
           token: ${{ steps.generate-token.outputs.token }}
+          fetch-depth: 0
 
       - name: Set Node 16
         uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3.9.1
         with:
           node-version: 16
-          cache: 'npm'
 
       # Calculate the next release version based on conventional semantic release
-      - name: Calculate new version
+      - name: Create release branch
         id: create-release
-        env:
-          HUSKY: 0
         run: |
           source_branch_name=${GITHUB_REF##*/}
           release_type=release
-          grep -q "hotfix/" <<< "${GITHUB_REF}" && release_type=hotfix-release
           git fetch origin master --depth=1
           git merge origin/master
           current_version=$(cat gradle.properties | grep "VERSION_NAME" | cut -d'=' -f2)
 
-          npm run release -- --skip.commit --skip.tag --skip.changelog
+          npm ci
+          npx standard-version --skip.commit --skip.tag --skip.changelog
           new_version=$(cat gradle.properties | grep "VERSION_NAME" | cut -d'=' -f2)
           git reset --hard
 
@@ -64,33 +61,19 @@ jobs:
           echo "Release type is $release_type"
           echo "New version is $new_version"
           echo "New release branch name is $branch_name"
+          git checkout -b "$branch_name"
 
-          echo "::set-output name=source_branch_name::$source_branch_name"
-          echo "::set-output name=branch_name::$branch_name"
-          echo "::set-output name=new_version::$new_version"
-
-      - name: Create release branch via GitHub API
-        env:
-          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
-        run: |
-          BASE_SHA=$(git rev-parse origin/master)
-          gh api repos/${{ github.repository }}/git/refs \
-            --method POST \
-            -f ref="refs/heads/${{ steps.create-release.outputs.branch_name }}" \
-            -f sha="$BASE_SHA"
+          echo "source_branch_name=$source_branch_name" >> $GITHUB_OUTPUT
+          echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
 
       - name: Update changelog & bump version
         id: finish-release
-        env:
-          HUSKY: 0
         run: |
-          npm i -g conventional-changelog-cli
-          SUMMARY=$(((npx conventional-changelog -u) 2>&1) | sed "s/*/<br> */g" | sed "s/#/ /g" | tr -d '\n' || true)
-          echo $SUMMARY
-          echo "::set-output name=commit_summary::$SUMMARY"
-          npm run release -- --skip.commit --skip.tag
+          npm ci
+          npx standard-version -a --skip.commit --skip.tag
 
-      - name: Create verified commit and tag via GitHub API
+      - name: Create verified commit and push changes
         uses: ryancyq/github-signed-commit@e9f3b28c80da7be66d24b8f501a5abe82a6b855f # v1.2.0
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
@@ -100,14 +83,13 @@ jobs:
           files: |
             CHANGELOG.md
             gradle.properties
-          tag: 'v${{ steps.create-release.outputs.new_version }}'
 
-      - name: Create pull request into main
-        uses: repo-sync/pull-request@7e79a9f5dc3ad0ce53138f01df2fad14a04831c5 # v2.12.1
+      - name: Create pull request into master
+        uses: repo-sync/pull-request@7e79a9f5dc3ad0ce53138f01df2fad14a04831c5 # v2
         with:
           source_branch: ${{ steps.create-release.outputs.branch_name }}
-          destination_branch: 'main'
+          destination_branch: 'master'
           github_token: ${{ steps.generate-token.outputs.token }}
-          pr_title: "chore(release): pulling ${{ steps.create-release.outputs.branch_name }} into main"
-          pr_body: ":crown: *An automated PR*\n\n${{ steps.finish-release.outputs.commit_summary }}"
-          pr_reviewer: 'itsdebs'
+          pr_title: "chore(release): pulling ${{ steps.create-release.outputs.branch_name }} into master"
+          pr_body: ":crown: *An automated PR*"
+          pr_reviewer: "@rudderlabs/sdk-android"

@@ -35,9 +35,12 @@ jobs:
 
       - name: Extract version from branch name (for release branches)
         id: extract-version
+        env:
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
-          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
-          if [ "$BRANCH_NAME" = "" ]; then BRANCH_NAME=${{ github.event.inputs.version }}
+          BRANCH_NAME="$PR_HEAD_REF"
+          if [ "$BRANCH_NAME" = "" ]; then BRANCH_NAME="$INPUT_VERSION"
           fi
           echo "BRANCH_NAME considered: ${BRANCH_NAME}"
           VERSION=${BRANCH_NAME#release/}
